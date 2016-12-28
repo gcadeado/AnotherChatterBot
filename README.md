@@ -6,7 +6,7 @@ This is a simple test for my learning about Facebook bots
 
 This is a very simple bot created using [Calamars proto-framework](https://www.npmjs.com/package/calamars)
 
-The bot responds to greetings, farewell, compliments and can (barely) tell the weather. Also, he plays marcopolo.
+The bot responds to greetings, farewell, gratitude and can (barely) tell the weather. Also, he plays marcopolo.
 
 The bot uses Wit.ai for natural language understanding for a very few intentions.
 

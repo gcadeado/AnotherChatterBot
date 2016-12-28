@@ -20,30 +20,28 @@ const witOptions = {
 const callbacks = {
     marco() { return 'Polo!'; },
     greetings() {
-      var sentences = ['Greetings :)', 'Hello!', 'Hi :D'];
-      var randomNumber = Math.floor((Math.random() * sentences.length));
-      return sentences[randomNumber];
+        var sentences = ['Greetings :)', 'Hello!', 'Hi :D'];
+        var randomNumber = Math.floor((Math.random() * sentences.length));
+        return sentences[randomNumber];
     },
     goodbye() {return 'Have a nice week :D'},
     gratitude() {return 'You are welcome :)'},
     getWeather(location) {
-        //console.log(s);
         if (undefined != location || null != location) {
           //Here we call the weather API
-
           //Note: I haven't found yet an API that returns a Promise
           //Lets make a callback hell :(
           function weatherCall(location, callback) {
-            Weather.find({search: 'San Francisco, CA', degreeType: 'C'}, function(err, result) {
+            Weather.find({search: location[0].value, degreeType: 'C'}, function(err, result) {
               if(err) console.log(err);
               callback(result);
             });
           }
-          weatherCall(location, function(response){
+          var test = weatherCall(location, function(response){
               console.log(response); //Ok i can get the weather...but...how do i return it?
           });
 
-          //Since i can't get the weather from here, return a standard message
+          //Since i can't get the weather result from here, return a standard message
           return "You asked for the forecast in " + location[0].value + ". It is cloudy. (That's a guess, i really should call a weather API here hehe)"; //Here we call API
         }
         else
