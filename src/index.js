@@ -2,6 +2,7 @@ const DotEnv = require('dotenv').config();
 const FacebookMessengerBot = require('calamars').FacebookMessengerBot;
 import { WitDriver, createRouter } from 'calamars';
 const Weather = require('weather-js');
+require('babel-polyfill');
 
 const myPageToken = process.env.FB_PAGE_TOKEN;
 const myVerifyToken = process.env.FB_VERIFY_TOKEN;
@@ -17,32 +18,31 @@ const witOptions = {
     serverToken: myWitServerToken
 };
 
+//Function Weather returns a Promise from weather API
+function weatherCall(location) {
+  return new Promise ((res) => {
+    Weather.find({search: location[0].value, degreeType: 'C'}, function(err, result) {
+      //console.log("triggered")
+      if(err) console.log(err);
+      else res(result);
+    })
+  });
+}
+
 const callbacks = {
     marco() { return 'Polo!'; },
     greetings() {
         var sentences = ['Greetings :)', 'Hello!', 'Hi :D'];
         var randomNumber = Math.floor((Math.random() * sentences.length));
-        return sentences[randomNumber];
+        return sentences[randomNumber]; //Return a random greetings message
     },
     goodbye() {return 'Have a nice week :D'},
     gratitude() {return 'You are welcome :)'},
-    getWeather(location) {
-        if (undefined != location || null != location) {
-          //Here we call the weather API
-          //Note: I haven't found yet an API that returns a Promise
-          //Lets make a callback hell :(
-          function weatherCall(location, callback) {
-            Weather.find({search: location[0].value, degreeType: 'C'}, function(err, result) {
-              if(err) console.log(err);
-              callback(result);
-            });
-          }
-          var test = weatherCall(location, function(response){
-              console.log(response); //Ok i can get the weather...but...how do i return it?
-          });
+    async getWeather(location) {
+        if (location) {
+          var test = await weatherCall(location); //Call weather API
 
-          //Since i can't get the weather result from here, return a standard message
-          return "You asked for the forecast in " + location[0].value + ". It is cloudy. (That's a guess, i really should call a weather API here hehe)"; //Here we call API
+          return "You asked for the forecast in " + location[0].value + ". It is " + test[0].current.skytext + ". Temperature is " + test[0].current.temperature +" degrees, but feelslike it's "+ test[0].current.feelslike +". Humidity is "+test[0].current.humidity+"% and wind is "+test[0].current.winddisplay+".";
         }
         else
             return "Where? (I still have problems understanding flows, so please retype the entire sentence)"
@@ -68,7 +68,7 @@ const routes = [
     ],
     [
         payload => payload.entities.intent[0].value === 'weather',
-        (payload) => callbacks.getWeather(payload.entities.location)
+        (payload) => {return callbacks.getWeather(payload.entities.location)}
     ]
 ];
 
@@ -80,19 +80,28 @@ const myMessageListener = function(updateEvent){
 
     //Query wit
     const queryPromise = wit.query(updateEvent.update.message.text)
-            .then(result => {
+            .then(async result => {
                 const { _text, outcomes } = result;
-                //console.log(outcomes[0].entities);  //entities
-                //Reply
-                const intentName = outcomes[0].entities.intent[0].value;
-                const confidence = outcomes[0].entities.intent[0].confidence;
-                updateEvent.bot.sendMessage({
-                    userId: updateEvent.update.sender.id,
-                    text: router({
-                              query: outcomes[0]._text,
-                              entities: outcomes[0].entities
-                    })
-                });
+
+                //If we have an intention...
+                if (outcomes[0].entities.intent) {
+                  const answer = await router({
+                            query: outcomes[0]._text,
+                            entities: outcomes[0].entities
+                  });
+
+                  updateEvent.bot.sendMessage({
+                      userId: updateEvent.update.sender.id,
+                      text: answer
+                  });
+                }
+                //Wit couldnt find an intention, so answer default message (cannot understand)
+                else {
+                  updateEvent.bot.sendMessage({
+                      userId: updateEvent.update.sender.id,
+                      text: "I'm sorry, i didn't understand what you said :( (currently i can tell the weather, answer to greetings, farewell, gratitude and also, i can play marcopolo :D)"
+                  });
+                }
             });
 };
 

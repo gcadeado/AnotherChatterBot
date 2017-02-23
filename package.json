@@ -1,7 +1,7 @@
 {
   "name": "AnotherChatterBot",
   "version": "0.0.1",
-  "description": "Just a bot for test purposes",
+  "description": "A facebook chatterbot for testing purposes",
   "keywords": [
     "Calamar",
     "bot",
@@ -15,15 +15,15 @@
     "start:dev": "babel-node src/index.js",
     "test": "`npm bin`/ava --require babel-register --require babel-polyfill --verbose",
     "test:watch": "`npm bin`/ava --require babel-register --require babel-polyfill --verbose --watch",
-    "clean:calamar": "rm -rf dist/calamar",
-    "prebuild:calamar": "calamar run clean:calamar",
-    "build": "babel-node -d dist/calamar/src -D src",
     "build:npm": "babel -d dist/npm/src -D src"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gcadeado/AnotherChatterBott"
   },
   "dependencies": {
     "babel-polyfill": "^6.9.1",
     "calamars": "^0.17.6",
-    "redis": "^2.6.3",
     "weather-js": "^1.0.2",
     "dotenv": "^2.0.0"
   },
